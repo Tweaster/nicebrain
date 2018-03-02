@@ -1,0 +1,244 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="msapplication-tap-highlight" content="no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<meta name="author" content="Fabrice Rasoamiaramanana">
+<meta name="description" content="List'n List, a checklist/todo-list management app by Fabrice Rasoamiaramanana">
+<meta name="keywords" content="List'n List,Fabrice Rasoamiaramanana,project furnace">
+
+
+
+<!--link rel="shortcut icon" href="img/favicon.png"/-->
+
+
+
+
+<!-- external scripts -->
+<!--script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script-->
+
+<script src="http://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+
+<script src="js/jquery.ui.touch-punch.min.js"></script>
+
+
+<!-- CSS -->
+<link href="css/ratchet.css" rel="stylesheet" type="text/css">
+<link href="css/ratchet-theme-ios.css" rel="stylesheet" type="text/css">
+
+
+
+
+
+<script src="js/markdown.min.js"></script>
+<script src="js/ratchet.js"></script>
+<script src="js/app.js"></script>
+
+
+
+<title>MemCard in dev</title>
+
+
+<script>
+
+
+	function onAppStart()
+	{
+
+	  	initUI();
+	}
+    
+
+    //document.addEventListener("deviceready", onAppStart, false);
+
+    $(document).ready(function() 
+    {
+        // are we running in native app or in a browser?
+        window.isphone = false;
+        if(document.URL.indexOf("http://") === -1 
+            && document.URL.indexOf("https://") === -1) 
+        {
+            window.isphone = true;
+        }
+
+        window.isphone = false;
+
+        if( !window.isphone ) 
+        {
+            onAppStart();
+        }
+    });
+
+</script>
+
+
+
+<!--script src="phonegap.js"></script-->
+
+
+
+</head>
+
+<body>
+
+	<header class="bar bar-nav">
+	  <h1 class="title">Checklists</h1>
+	</header>
+
+
+	
+
+
+	<div class="sliderx" id="mySlider">
+	  	<div class="slide-groupx">
+	    	<div class="slidex">
+	    		<div class="pagecontent">
+
+					<div class="card from-left">
+
+						<ul class="table-view">
+						  
+						
+						</ul>
+						
+
+
+					</div>
+
+					<div class="content-padded">
+					  <span class="icon icon-plus pulse" id="new-action-item"></span>
+					</div>
+
+				
+
+				</div>
+	      
+	    	</div>
+
+	    	<div class="slidex" id="testbench">
+	    		<div class="pagecontent testbenchcontent">
+
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+
+
+
+
+
+
+
+	<nav class="bar bar-tab">
+	  <a class="tab-item active" href="#">
+	    <span class="icon icon-home"></span>
+	    <span class="tab-label">Home</span>
+	  </a>
+
+	  <a class="tab-item" href="#settingsModal">
+	    <span class="icon icon-gear"></span>
+	    <span class="tab-label">Settings</span>
+	  </a>
+
+	  <a class="tab-item" href="#aboutModal">
+	    <span class="icon">?</span>
+	    <span class="tab-label">About</span>
+	  </a>
+	</nav>
+
+
+
+	<div id="settingsModal" class="modal">
+	  
+
+	  <div class="content">
+
+	  	<p class="content-padded">
+	  	<header>
+	    <a class="icon icon-close pull-right" href="#settingsModal"></a>
+	    </header>
+		</p>
+		<br/>
+		<h4>Application Settings</h4>
+
+		<label>Number of questions per round:</label>
+		<select id="nbquestion-combo">
+			<option value="6">6</option>
+			<option value="8">8</option>
+			<option value="10">10</option>
+			<option value="12">12</option>
+		</select>
+
+		</div>
+	</div>
+
+
+	<div id="aboutModal" class="modal">
+	  
+
+	  <div class="content">
+
+	  	<p class="content-padded">
+	  	<header>
+	    <a class="icon icon-close pull-right" href="#aboutModal"></a>
+	    </header>
+		</p>
+		<br/>
+		<h4>Disclaimer</h4>
+
+		<p>
+		This application provided by Project Furnace is supplied "AS IS" without any warranties and support.</p>
+
+		<p>Project Furnace assumes no responsibility or liability for the use of the software, conveys no license or title under any patent, copyright, or mask work right to the product.</p>
+
+		<p>
+		Project Furnace reserves the right to make changes in the software without notification. Project Furnace also make no representation or warranty that such application will be suitable for the specified use without further testing or modification.</p>
+
+		<p>For further information, contact Fabrice Rasoamiaramanana</p>
+
+		</div>
+	</div>
+
+	<div id="editCardModal" class="modal">
+	  
+
+	  <div class="content">
+
+	  	<p class="content-padded">
+	  	<header>
+	    <a class="icon icon-close pull-right" href="#editCardModal"></a>
+	    </header>
+		</p>
+		<br/>
+		
+	   <form>
+	   	  <input type="text" placeholder="Title" id="card-id-hidden">
+	   	  <label>Title</label>
+		  <input type="text" placeholder="Edit title..." id="card-caption-edit">
+		  <label>Recto</label>
+		  <textarea rows="7" id="card-recto-edit" placeholder="Edit recto..."></textarea>
+		  <label>Verso</label>
+		  <textarea rows="7" id="card-verso-edit" placeholder="Edit verso..."></textarea>
+		  <label>Tags</label>
+		  <div id="card-tags-edit"></div>
+		  
+		</form>
+
+		<button class="btn btn-positive btn-block" id="save-card">Save</button>
+
+	  </div>
+	</div>
+
+
+	<link href="css/card.css" rel="stylesheet" type="text/css">
+	<link href="css/circle.css" rel="stylesheet" type="text/css">
+	<link href="css/style.css" rel="stylesheet" type="text/css">
+
+</body>
+
+
+
+</html>
