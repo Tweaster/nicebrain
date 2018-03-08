@@ -17,6 +17,7 @@ var ACTIONS = {};
 
 
 
+
 /*******************************************************/
 
 
@@ -103,7 +104,7 @@ function childActionItemAsHTML(caption, id, index)
 function swipedActionItemAsHTML(id, index)
 {
 	var html = `<li class="table-view-cell btn-on" id="{0}" data-source="{0}" data-index="{2}">
-					</span><span class="icon icon-list" data-source="{0}"></span> <span class="icon icon-compose" data-source="{0}"></span><span class="icon icon-trash" data-source="{0}"></span> {1} 
+					</span><span class="icon icon-list" data-source="{0}"></span> <span class="icon icon-compose" data-source="{0}"></span><span class="icon icon-share" data-source="{0}"></span><span class="icon icon-trash pull-right" data-source="{0}"></span> {1} 
 			  </li>`;
 
   	//return String.format(html,id, ACTIONS[id].caption, index);
@@ -192,7 +193,7 @@ function coreEditActionItem(caption, id)
 
 function coreDeleteActionItem(id)
 {
-	var parent = ACTIONS[ACTIONS[id].parent];
+	var parent = ACTIONS['top-level'];
 	if (parent !== null && typeof(parent) !== "undefined")
 	{
 		var index = parent.children.indexOf(id);
@@ -1277,6 +1278,22 @@ function nextQuestion()
 
 
 
+function exportModal(id)
+{
+	var col = new CardCollection([id]);
+	var deck = col.getCards(9999, true);
+
+
+	$('#jsondata').val(JSON.stringify(deck));
+	$('#exportid').val(id);
+	$('#checklist-description').val('');
+
+
+	$("#exportModal").addClass('active');
+}
+
+
+
 
 
 /******************************** CLICK HANDLING ****************************/
@@ -1324,6 +1341,168 @@ function clickPerformed(evt)
 		// fetch real name from id
 		$("#" + id).replaceWith(captionEditAsHTML(caption, id));
 	}
+	else if (lastClickedObject.is('span.icon.icon-share'))
+	{
+		var id =  lastClickedObject.attr("data-source");
+
+		exportModal(id);
+	}
+	else if (lastClickedObject.is('.checklist-download'))
+	{
+		var id = lastClickedObject.attr("data-source");
+		$.ajaxSetup(
+		    {
+		      crossDomain: true,
+		      cache: false
+		    }
+		  );
+
+		$('#downloadModal').removeClass('active');
+
+
+		var w = "ID='" + id + "\'";
+
+		  var jqxhr = $.post(
+		    "http://nicebrain.projectfurnace.org/php/field_request.php",
+		    { where : w.toString(), field : "JSONDATA,CAPTION" }
+		  );
+
+
+		  jqxhr.done(
+		    function(raw_data)
+		    {
+		      if (raw_data != null && raw_data.length > 2)
+			  {
+			    var tmp = raw_data.substring(0, raw_data.length - 3);
+			    var response = JSON.parse(tmp);
+			    var obj = JSON.parse(response.JSONDATA);
+
+			    for (var i = 0; i < obj.length; i++)
+			    {
+			    	CARDS[obj[i].id] = new Card(obj[i]);
+			    }
+
+			    if (ACTIONS['top-level'].children.indexOf(id) === -1)
+			    {
+			    	ACTIONS['top-level'].children.push(id);
+			    	ACTIONS[id] = {caption: response.CAPTION, id: id, children: [], checked: false, parent: 'top-level'};
+			    	saveMenuEntries();
+			    }
+
+
+			   
+
+			    saveCards();
+			  }
+		    }
+		  );
+
+		  jqxhr.fail(
+		    function()
+		    {
+
+		    }
+		  );
+	}
+	else if (lastClickedObject.is('span.icon.icon-download') )
+	{
+		$('#download-list').html('');
+
+		$('#downloadModal').addClass('active');
+
+		$.ajaxSetup(
+		    {
+		      crossDomain: true,
+		      cache: false
+		    }
+		  );
+
+		  var jqxhr = $.post(
+		    "http://nicebrain.projectfurnace.org/php/field_request.php",
+		    { where : "1", field : "ID,CAPTION,DESCRIPTION,CATEGORY" }
+		  );
+
+
+		  jqxhr.done(
+		    function(raw_data)
+		    {
+		      if (raw_data != null && raw_data.length > 2)
+			  {
+			    var tmp = raw_data.substring(0, raw_data.length - 3);
+			    var strArray = tmp.split('~');
+
+			    var html = '';
+
+			    for (var i = 0; i < strArray.length; i++)
+			    {
+			    	var response = JSON.parse(strArray[i]);
+			    	tmp = `<li class="table-view-cell media checklist-download" data-source="{0}">
+							    <a class="navigate-right checklist-download" data-source="{0}">
+							      <img class="media-object pull-left" src="img/{3}.png">
+							      <div class="media-body checklist-download" data-source="{0}">
+							        {1}
+							        <p class="checklist-download" data-source="{0}">{2}</p>
+							      </div>
+							    </a>
+							  </li>`;
+
+					html += String.format(tmp, response.ID, response.CAPTION, response.DESCRIPTION, response.CATEGORY);
+
+					
+			    }
+
+			    $('#download-list').html(html);
+			  }
+		    }
+		  );
+
+		  jqxhr.fail(
+		    function()
+		    {
+
+		    }
+		  );
+	}
+	else if (lastClickedObject.is('#export-btn'))
+	{
+		var id = $('#exportid').val();
+		var data = $('#jsondata').val();
+		var desc = $('#checklist-description').val();
+		var category = $('#export-category').val();
+
+	 	$('#exportModal').removeClass('active');
+
+	 	$.ajaxSetup(
+		    {
+		      crossDomain: true,
+		      cache: false
+		    }
+		  );
+	 	
+
+	 	var jqxhr = $.post(
+		    "http://nicebrain.projectfurnace.org/php/commit.php",
+		    { id : id, data : data,  category : Number(category), description: desc, caption: ACTIONS[id].caption }
+		  );
+
+		  jqxhr.done(
+		    function(d) 
+		    {
+		      	$('.title').text('export successful');
+		    }
+		  );
+
+		  jqxhr.fail(
+		    function()
+		    {
+		      	$('.title').text('export failed');
+		    }
+		  );
+
+		refreshUI(false);
+
+
+	 }
 	else if (lastClickedObject.is('span.icon.icon-list')  || lastClickedObject.is('a.navigate-right') )
 	{ 
 		var id = lastClickedObject.attr("data-source");
@@ -1486,6 +1665,19 @@ function clickPerformed(evt)
 
 		startEvaluation();
 	}
+}
+
+
+
+function addEntry(caption)
+{
+	var t = "PMBOK 6th Ed (" + caption + ")";
+	ACTIONS[caption] = {caption: t, id: caption, children: Array(0), checked: false, parent: "top-level"};
+	if (ACTIONS['top-level'].children.indexOf(caption) === -1)
+    {
+    	ACTIONS['top-level'].children.push(caption);
+    }
+	saveMenuEntries();
 }
 
 
